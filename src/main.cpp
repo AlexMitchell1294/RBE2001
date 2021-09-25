@@ -6,6 +6,7 @@
 #include <RBE1001Lib.h>
 
 #include "FourBar.h"
+#include "Robot.h"
 
 FourBar blueMotor;
 const int button = 13;
@@ -26,32 +27,27 @@ void setup() {
 //(nwePosition- old position) * 1000) * 60 /(100*CPR), cpr = counts per revolution = 270
 void loop()
 {
+  blueMotor.setEffort(0);
   timeToPrint = millis() + sampleTime;
   oldPosition = blueMotor.getPosition();
   while (digitalRead(button) == HIGH)
   {
     // The button is currently pressed.
-    blueMotor.setEffort(255);
+    blueMotor.setEffort(128);
     if ((now = millis()) > timeToPrint)
     {
       timeToPrint = now + sampleTime;
       newPosition = blueMotor.getPosition();
       speedInRPM = ((newPosition-oldPosition)*1000*60)/(sampleTime*CPR);
-      Serial.print("time (ms): ");
       Serial.print(now);
-      Serial.print("\tcount: ");
+      Serial.print("      ");
       Serial.print(newPosition);
-      Serial.print("\tRPM: ");
+      Serial.print("      ");
       Serial.println(speedInRPM);
       oldPosition = newPosition;
-      
+
     }
-    
   }
-
-    
- blueMotor.setEffort(0);
-
 }
 
 // #include <Arduino.h>
