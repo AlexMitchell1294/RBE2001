@@ -264,7 +264,7 @@ void Robot::lineTracker()
   //     break;
   //   }
   // }
-  float error = linesensors.leftLine.readVoltage() - linesensors.rightLine.readVoltage();//P*Kp + I*Ki + D*Kd;
+  float error = linesensors.getError();
   float motorspeed = kp * error + kd * (error-lastError);
   lastError = error;
   Serial.println(motorspeed);

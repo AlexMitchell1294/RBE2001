@@ -23,6 +23,7 @@ private:
 public:
     LineSensors(/* args */);
     bool driveSensorsOnLine();
+    float getError();
 };
 
 LineSensors::LineSensors(/* args */)
@@ -32,4 +33,8 @@ LineSensors::LineSensors(/* args */)
 bool LineSensors::driveSensorsOnLine()
 {
   return leftLine.readVoltage() >= 1.5 && rightLine.readVoltage() >= 1.5;
+}
+
+float LineSensors::getError(){
+  return leftLine.readVoltage() - rightLine.readVoltage();
 }
