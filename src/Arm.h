@@ -15,7 +15,10 @@ class Arm
 
 public:
     Arm(/* args */);
-    Servo armServo;
 
     void armTurn(float angle);
+    void armSetup();
+
+private:
+    Servo armServo;
 };

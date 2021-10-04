@@ -33,7 +33,7 @@ void setup() {
   
   decoder.init();
   blueMotor.setup();
-  robot.arm.armServo.attach(SERVO_PIN);
+  robot.arm.armSetup();
   digitalWrite(button, INPUT);
   robot.linesensors.leftLine.attach(39);
   robot.linesensors.rightLine.attach(36);

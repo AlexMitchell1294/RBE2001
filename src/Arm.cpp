@@ -6,18 +6,7 @@
 #include <ESP32WifiManager.h>
 #include <WebServer.h>
 #include <ESP32PWM.h>
-
-/**
- * Sets up the servo and arm turn methods. arm is not used much in this project.
- */ 
-class Arm
-{
-    
-public:
-    Arm(/* args */);
-    Servo armServo;
-    void armTurn(float angle);
-};
+#include "Arm.h"
 
 Arm::Arm(/* args */)
 {
@@ -29,4 +18,8 @@ Arm::Arm(/* args */)
 void Arm::armTurn(float angle)
 {
   armServo.write(angle);
+}
+
+void Arm::armSetup(){
+  armServo.attach(SERVO_PIN);
 }

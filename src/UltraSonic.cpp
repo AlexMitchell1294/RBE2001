@@ -32,7 +32,7 @@ float UltraSonic::getDistance()
   float distance;
   while ((distance = rangefinder.getDistanceCM()) <= 0.0)
   {
-    delay(2000);
+    delay(100);
   }
   return distance;
 }
