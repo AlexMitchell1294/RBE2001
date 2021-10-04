@@ -1,6 +1,15 @@
 #include "FourBar.h"
 
 #include <RBE1001Lib.h>
+int encoderTable[4][4] = {
+  {0,-1,1,0,},
+  {1,0,0,-1,},
+  {-1,0,0,1,},
+  {0,1,-1,0},
+};
+int oldVal = 0;
+int newVal = 0;
+volatile char out = 0;
 
 long count = 0;  // encoder counter
 // Mutex for the count critical variable
@@ -12,7 +21,10 @@ portMUX_TYPE mux = portMUX_INITIALIZER_UNLOCKED;
  */
 void IRAM_ATTR isr() {
   portENTER_CRITICAL_ISR(&mux);
-  count++;
+  oldVal = newVal;
+  newVal = (digitalRead(18) << 1) | digitalRead(19);
+  out = encoderTable[oldVal][newVal];
+  count += out;
   portEXIT_CRITICAL_ISR(&mux);
 }
 
@@ -30,6 +42,7 @@ void FourBar::setup() {
   digitalWrite(AIN2, HIGH);
   pinMode(PWM, OUTPUT);
   attachInterrupt(ENCA, isr, CHANGE);
+  attachInterrupt(ENCB, isr, CHANGE);
 }
 
 /**

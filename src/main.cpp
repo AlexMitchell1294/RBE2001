@@ -7,8 +7,9 @@
 
 #include "FourBar.h"
 #include "Robot.h"
+#include "IRdecoder.h"
+#include "RemoteConstants.h"
 
-FourBar blueMotor;
 const int button = 13;
 long Count = 0;
 long timeToPrint = 0;
@@ -19,35 +20,52 @@ long sampleTime = 100;
 int speedInRPM = 0;
 int CPR = 270;
 
+int armP = 90;
+
+Robot robot;
+FourBar blueMotor;
+IRDecoder decoder(15);
+uint16_t code;
+
+
 void setup() {
   Serial.begin(9600);
+  
+  decoder.init();
   blueMotor.setup();
+  robot.arm.armServo.attach(SERVO_PIN);
   digitalWrite(button, INPUT);
+  robot.linesensors.leftLine.attach(39);
+  robot.linesensors.rightLine.attach(36);
 }
 //(nwePosition- old position) * 1000) * 60 /(100*CPR), cpr = counts per revolution = 270
 void loop()
 {
-  blueMotor.setEffort(0);
-  timeToPrint = millis() + sampleTime;
-  oldPosition = blueMotor.getPosition();
-  while (digitalRead(button) == HIGH)
-  {
-    // The button is currently pressed.
-    blueMotor.setEffort(128);
-    if ((now = millis()) > timeToPrint)
-    {
-      timeToPrint = now + sampleTime;
-      newPosition = blueMotor.getPosition();
-      speedInRPM = ((newPosition-oldPosition)*1000*60)/(sampleTime*CPR);
-      Serial.print(now);
-      Serial.print("      ");
-      Serial.print(newPosition);
-      Serial.print("      ");
-      Serial.println(speedInRPM);
-      oldPosition = newPosition;
-
+  code = decoder.getKeyCode();
+  if (code==remote9){
+    blueMotor.setEffort(255);
+  }
+  else if(code==remote8){
+    blueMotor.setEffort(-255);
+  }
+  else if (code==remote7){
+    blueMotor.setEffort(0);
+  }
+  else if(code==remote1){
+    while(1){
+      code = decoder.getKeyCode();
+      robot.lineTracker();
+      if(code==remote2){
+        code = remote2;
+        break;
+      }
     }
   }
+    else if(code==remote2){
+    robot.chassis.left.setEffort(0);
+    robot.chassis.right.setEffort(0);
+  }
+  //Serial.println(blueMotor.getPosition());
 }
 
 // #include <Arduino.h>
@@ -69,8 +87,8 @@ void loop()
 //   //must attach in setup or the code won't work
 
 //   Serial.begin(9600);
-//   ESP32PWM::allocateTimer(1);
-//   Motor::allocateTimer(0);
+  // ESP32PWM::allocateTimer(1);
+  // Motor::allocateTimer(0);
 
 //   robot.ultrasonic.rangefinder.attach(SIDE_ULTRASONIC_TRIG, SIDE_ULTRASONIC_ECHO);
 //   robot.arm.armServo.attach(SERVO_PIN);

@@ -40,6 +40,11 @@ public:
 
   bool eitherLineStop();
   bool bothLineStop();
+
+  int lastError = 0;
+  float kp = .5;
+  float ki = 0.0;
+  float kd = 0.1;
 };
 
 Robot::Robot()
@@ -250,15 +255,21 @@ void Robot::followCurveInLine(int direction)
 */
 void Robot::lineTracker()
 {
-  while (true)
-  {
-    chassis.left.setEffort(linesensors.rightLine.readVoltage() * kpAuto);
-    chassis.right.setEffort(linesensors.leftLine.readVoltage() * kpAuto);
-    if (eitherLineStop())
-    {
-      break;
-    }
-  }
+  // while (true)
+  // {
+  //   chassis.left.setEffort(linesensors.rightLine.readVoltage() * kpAuto);
+  //   chassis.right.setEffort(linesensors.leftLine.readVoltage() * kpAuto);
+  //   if (eitherLineStop())
+  //   {
+  //     break;
+  //   }
+  // }
+  float error = linesensors.leftLine.readVoltage() - linesensors.rightLine.readVoltage();//P*Kp + I*Ki + D*Kd;
+  float motorspeed = kp * error + kd * (error-lastError);
+  lastError = error;
+  Serial.println(motorspeed);
+  chassis.left.setEffort(.1 + motorspeed);
+  chassis.right.setEffort(.1 - motorspeed);
 }
 
 /**
