@@ -24,4 +24,7 @@ class FourBar {
   const int AIN1 = 27;
   const int ENCA = 19;
   const int ENCB = 18;
+
+  const int bottomSafety = 0;
+  const int topSafety = 12500;
 };

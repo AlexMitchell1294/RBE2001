@@ -42,10 +42,10 @@ public:
   bool bothLineStop();
 
   int lastError = 0;
-  float kp = .5;
+  float kp = .005;
   float ki = 0.0;
-  float kd = 0.1;
-  float base = 0.1;
+  float kd = 0.01;
+  float base = 0.5;
 };
 
 Robot::Robot(){
@@ -268,9 +268,10 @@ void Robot::lineTracker()
   float error = linesensors.getError();
   float motorspeed = kp * error + kd * (error-lastError);
   lastError = error;
-  Serial.println(motorspeed);
-  float leftVal = base + motorspeed;
+  //Serial.println(motorspeed);
+  float leftVal = base - motorspeed;
   float rightVal = base + motorspeed;
+  Serial.println(leftVal);
   chassis.setDriveEffort(leftVal, rightVal);
 }
 

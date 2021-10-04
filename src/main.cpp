@@ -39,17 +39,26 @@ void setup() {
   robot.linesensors.rightLine.attach(36);
 }
 //(nwePosition- old position) * 1000) * 60 /(100*CPR), cpr = counts per revolution = 270
+int a = 0;
 void loop()
 {
   code = decoder.getKeyCode();
+  if(code != 65535){
+    Serial.println(code);
+  }
+  Serial.println(a);
+  blueMotor.setEffort(a);
   if (code==remote9){
-    blueMotor.setEffort(255);
+    a +=5;
+    Serial.println(blueMotor.getPosition());
   }
   else if(code==remote8){
-    blueMotor.setEffort(-255);
+    a -= 5;
+    Serial.println(blueMotor.getPosition());
   }
   else if (code==remote7){
     blueMotor.setEffort(0);
+    Serial.println(blueMotor.getPosition());
   }
   else if(code==remote1){
     while(1){
@@ -65,7 +74,6 @@ void loop()
     robot.chassis.left.setEffort(0);
     robot.chassis.right.setEffort(0);
   }
-  //Serial.println(blueMotor.getPosition());
 }
 
 // #include <Arduino.h>

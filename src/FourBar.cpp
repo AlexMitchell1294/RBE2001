@@ -9,7 +9,7 @@ int encoderTable[4][4] = {
 };
 int oldVal = 0;
 int newVal = 0;
-volatile char out = 0;
+volatile int out = 0;
 
 long count = 0;  // encoder counter
 // Mutex for the count critical variable
@@ -23,6 +23,7 @@ void IRAM_ATTR isr() {
   portENTER_CRITICAL_ISR(&mux);
   oldVal = newVal;
   newVal = (digitalRead(18) << 1) | digitalRead(19);
+
   out = encoderTable[oldVal][newVal];
   count += out;
   portEXIT_CRITICAL_ISR(&mux);
