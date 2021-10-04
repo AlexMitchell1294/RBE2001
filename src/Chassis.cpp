@@ -23,6 +23,7 @@ public:
     const float degreesPerCMForWheel = 360 / (3.14 * diameterWheel);
 
     void forward(float cm);
+    void setDriveEffort(float leftVal, float rightVal);
 };
 
 Chassis::Chassis()
@@ -42,4 +43,10 @@ void Chassis::forward(float cm)
     float degree = cm * degreesPerCMForWheel;
     left.startMoveFor(degree, 360);
     right.moveFor(degree, 360);
+}
+
+
+void Chassis::setDriveEffort(float leftVal, float rightVal){
+    left.setEffort(leftVal);
+    right.setEffort(rightVal);
 }

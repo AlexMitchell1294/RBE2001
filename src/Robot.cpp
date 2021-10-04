@@ -45,10 +45,11 @@ public:
   float kp = .5;
   float ki = 0.0;
   float kd = 0.1;
+  float base = 0.1;
 };
 
-Robot::Robot()
-{
+Robot::Robot(){
+
 }
 
 /**
@@ -268,8 +269,9 @@ void Robot::lineTracker()
   float motorspeed = kp * error + kd * (error-lastError);
   lastError = error;
   Serial.println(motorspeed);
-  chassis.left.setEffort(.1 + motorspeed);
-  chassis.right.setEffort(.1 - motorspeed);
+  float leftVal = base + motorspeed;
+  float rightVal = base + motorspeed;
+  chassis.setDriveEffort(leftVal, rightVal);
 }
 
 /**

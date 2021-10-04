@@ -17,4 +17,5 @@ public:
     const float degreesPerCMForWheel = 360 / (3.14 * diameterWheel);
 
     void forward(float cm);
+    void setDriveEffort(float, float);
 };
