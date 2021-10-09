@@ -45,7 +45,7 @@ void setup() {
   decoder.init();
   blueMotor.setup();
   robot.arm.armSetup();
-  robot.ultrasonic.rangefinder.attach(SIDE_ULTRASONIC_TRIG, SIDE_ULTRASONIC_ECHO);
+  //robot.ultrasonic.rangefinder.attach(SIDE_ULTRASONIC_TRIG, SIDE_ULTRASONIC_ECHO);
   digitalWrite(button, INPUT);
   robot.linesensors.leftLine.attach(39);
   robot.linesensors.rightLine.attach(36);

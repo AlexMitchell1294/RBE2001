@@ -84,7 +84,6 @@ void Robot::driveToObject(double desiredDistance)
       inputValue = ultrasonic.getDistance();
       float error = -desiredDistance + inputValue;
       if (printTimer.isExpired()) {
-        printf("%f: \t %f:\t %f:\n",inputValue,desiredDistance,error);
         if (error >= 2.5 || error <= -2.5) {
           chassis.setDriveEffort(error*KpD, error*KpD);
         }

@@ -99,12 +99,14 @@ void FourBar::setEffort(int effort, bool clockwise) {
 
 void FourBar::moveTo(int pos){
     int readVal = getPosition();
-    float error = readVal - pos;
+    float error = pos-readVal;
     while(1){
+      printf("%d: \t %d:\t %f:\n", readVal, pos, error);
       readVal = getPosition();
-      error = readVal - pos;
-      if (error >= 10 || error <= -10) {
+      error = pos-readVal;
+      if (error >= 100 || error <= -100) {
         setEffort(error*kpA);
       }
+      else break;
     } 
 }
