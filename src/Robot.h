@@ -1,4 +1,3 @@
-
 #include <Arduino.h>
 #include <RBE1001Lib.h>
 #include <ESP32AnalogRead.h>
@@ -7,11 +6,13 @@
 #include <ESP32WifiManager.h>
 #include <WebServer.h>
 #include <ESP32PWM.h>
+#include <Timer.h>
 
 #include <Chassis.h>
 #include <LineSensors.h>
 #include <Arm.h>
 #include <UltraSonic.h>
+#include <PID_v1.h>
 
 class Robot
 {
@@ -25,7 +26,7 @@ public:
 
   void turnWithLine(int direction);
   void FindObject();
-  void driveToObject(float desiredDistance);
+  void driveToObject(double desiredDistance);
   void pickupBag();
   void dropBag(float height);
   void followCurveInLine(int direction);
@@ -36,5 +37,11 @@ public:
 
   bool eitherLineStop();
   bool bothLineStop();
+
+  float lastError = 0.0;
+  float kp = 0.01;
+  float kd = 0.013;
+  float ki = 0.0;
+  float base = 0.3;
   
 };

@@ -2,13 +2,20 @@
 // Alex Mitchell, Final Project RBE 1001, 12/6/2020
 //  */
 
-
+#include <Arduino.h>
 #include <RBE1001Lib.h>
+#include <ESP32AnalogRead.h>
+#include <ESP32Servo.h>
+#include <ESP32Encoder.h>
+#include <ESP32WifiManager.h>
+#include <WebServer.h>
+#include <ESP32PWM.h>
 
 #include "FourBar.h"
 #include "Robot.h"
 #include "IRdecoder.h"
 #include "RemoteConstants.h"
+#include <PID_v1.h>
 
 const int button = 13;
 long Count = 0;
@@ -27,6 +34,10 @@ FourBar blueMotor;
 IRDecoder decoder(15);
 uint16_t code;
 
+double setpoint, inputValue, outputValue;
+//PID pid(&inputValue, &outputValue, &setpoint, KpD, KiD, KdD, REVERSE);
+
+
 
 void setup() {
   Serial.begin(9600);
@@ -34,9 +45,13 @@ void setup() {
   decoder.init();
   blueMotor.setup();
   robot.arm.armSetup();
+  robot.ultrasonic.rangefinder.attach(SIDE_ULTRASONIC_TRIG, SIDE_ULTRASONIC_ECHO);
   digitalWrite(button, INPUT);
   robot.linesensors.leftLine.attach(39);
   robot.linesensors.rightLine.attach(36);
+
+  // pid.SetMode(AUTOMATIC);
+  // pid.SetOutputLimits(-1.0, 1.0);
 }
 //(nwePosition- old position) * 1000) * 60 /(100*CPR), cpr = counts per revolution = 270
 int a = 0;
@@ -46,8 +61,8 @@ void loop()
   if(code != 65535){
     Serial.println(code);
   }
-  Serial.println(a);
   blueMotor.setEffort(a);
+  Serial.println(blueMotor.getPosition());
   if (code==remote9){
     a +=5;
     Serial.println(blueMotor.getPosition());
@@ -57,14 +72,42 @@ void loop()
     Serial.println(blueMotor.getPosition());
   }
   else if (code==remote7){
-    blueMotor.setEffort(0);
+    a= 0;
+    Serial.println(blueMotor.getPosition());
+  }
+  else if (code==remote6){
+    a= -255;
+    Serial.println(blueMotor.getPosition());
+  }
+  else if (code==remote5){
+    a= 255;
+    Serial.println(blueMotor.getPosition());
+  }
+  else if (code==remote4){
+    robot.arm.armTurn(90);
+    Serial.println(blueMotor.getPosition());
+  }
+    else if (code==remote3){
+    robot.arm.armTurn(135);
+    Serial.println(blueMotor.getPosition());
+  }
+      else if (code==remoteLeft){
+    robot.driveToObject(12);
+    Serial.println(blueMotor.getPosition());
+  }
+  else if (code==remoteVolPlus){
+    blueMotor.reset();
+    Serial.println(blueMotor.getPosition());
+  }
+    else if (code==remoteVolMinus){
+    blueMotor.moveTo(3000);
     Serial.println(blueMotor.getPosition());
   }
   else if(code==remote1){
     while(1){
       code = decoder.getKeyCode();
       robot.lineTracker();
-      if(code==remote2){
+      if(code==remote2 || robot.bothLineStop()){
         code = remote2;
         break;
       }

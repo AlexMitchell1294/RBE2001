@@ -1,53 +1,15 @@
-#include <Arduino.h>
-#include <RBE1001Lib.h>
-#include <ESP32AnalogRead.h>
-#include <ESP32Servo.h>
-#include <ESP32Encoder.h>
-#include <ESP32WifiManager.h>
-#include <WebServer.h>
-#include <ESP32PWM.h>
-
-#include <Chassis.h>
-#include <LineSensors.h>
-#include <Arm.h>
-#include <UltraSonic.h>
-
+#include <Robot.h>
+extern PID pid;
+const double KpD=0.03;
+const double KdD = 0.1;
+const double KiD = 0.0;
+extern double setpoint, inputValue, outputValue;
+Timer printTimer(500);
 
 /**
  * Any method that used more than one component of the robot is here. May be cleaner to add another "auto" file but most of these would also end up in there. Something to think about
  * 
  */
-class Robot
-{
-
-public:
-  Robot();
-  Chassis chassis;
-  LineSensors linesensors;
-  UltraSonic ultrasonic;
-  Arm arm;
-
-  void turnWithLine(int direction);
-  void FindObject();
-  void driveToObject(float desiredDistance);
-  void pickupBag();
-  void dropBag(float height);
-  void followCurveInLine(int direction);
-  void lineTracker();
-  void centerOnCrossSection(int direction);
-  void followLineToCrossSection(int autoTurnDirection, int centeredTurnDirection);
-  void findLine();
-
-  bool eitherLineStop();
-  bool bothLineStop();
-
-  int lastError = 0;
-  float kp = .005;
-  float ki = 0.0;
-  float kd = 0.01;
-  float base = 0.5;
-};
-
 Robot::Robot(){
 
 }
@@ -116,17 +78,20 @@ void Robot::FindObject()
 * drives to an object with desired distance between the robot and object
 * if arm holes (3,5) from the back ar being used then (3) roughly centers on the middle of the bag from a top down view
 */
-void Robot::driveToObject(float desiredDistance)
+void Robot::driveToObject(double desiredDistance)
 {
-  while (ultrasonic.getDistance() > desiredDistance)
-  {
-    chassis.left.setSpeed(-160);
-    chassis.right.setSpeed(-160);
-    delay(100);
+  while(1){
+      inputValue = ultrasonic.getDistance();
+      float error = -desiredDistance + inputValue;
+      if (printTimer.isExpired()) {
+        printf("%f: \t %f:\t %f:\n",inputValue,desiredDistance,error);
+        if (error >= 2.5 || error <= -2.5) {
+          chassis.setDriveEffort(error*KpD, error*KpD);
+        }
+        else break;
+      }
   }
-
-  chassis.left.setSpeed(0);
-  chassis.right.setSpeed(0);
+  chassis.setDriveEffort(0,0);
 }
 
 /*
@@ -181,7 +146,7 @@ bool Robot::eitherLineStop()
  */
 bool Robot::bothLineStop()
 {
-  if (linesensors.leftTrigger.readVoltage() >= 1.5 && linesensors.rightTrigger.readVoltage() >= 1.5)
+  if (linesensors.leftLine.readVoltage() >= 2.0 && linesensors.rightLine.readVoltage() >= 2.0)
   {
     chassis.left.setEffort(0);
     chassis.right.setEffort(0);
@@ -216,22 +181,22 @@ void Robot::followCurveInLine(int direction)
   // turns right
   if (direction == 1)
   {
-    leftValue = linesensors.rightTrigger.readVoltage() * kpTurnLeadRatio;
-    rightValue = linesensors.leftTrigger.readVoltage() * kpTurnFollowRatio;
+    leftValue = linesensors.rightLine.readVoltage() * kpTurnLeadRatio;
+    rightValue = linesensors.leftLine.readVoltage() * kpTurnFollowRatio;
   }
 
   // turns left
   else if (direction == -1)
   {
-    leftValue = linesensors.rightTrigger.readVoltage() * kpTurnFollowRatio;
-    rightValue = linesensors.leftTrigger.readVoltage() * kpTurnLeadRatio;
+    leftValue = linesensors.rightLine.readVoltage() * kpTurnFollowRatio;
+    rightValue = linesensors.leftLine.readVoltage() * kpTurnLeadRatio;
   }
 
   //forward if no direction specified
   else if (eitherLineStop())
   {
-    leftValue = linesensors.rightTrigger.readVoltage() * kpAuto;
-    rightValue = linesensors.leftTrigger.readVoltage() * kpAuto;
+    leftValue = linesensors.rightLine.readVoltage() * kpAuto;
+    rightValue = linesensors.leftLine.readVoltage() * kpAuto;
   }
 
   chassis.left.setEffort(leftValue);
@@ -271,7 +236,6 @@ void Robot::lineTracker()
   //Serial.println(motorspeed);
   float leftVal = base - motorspeed;
   float rightVal = base + motorspeed;
-  Serial.println(leftVal);
   chassis.setDriveEffort(leftVal, rightVal);
 }
 
@@ -294,8 +258,6 @@ void Robot::centerOnCrossSection(int direction)
  */
 void Robot::followLineToCrossSection(int autoTurnDirection, int centeredTurnDirection)
 {
-  while (true)
-  {
     if (bothLineStop())
     {
       centerOnCrossSection(centeredTurnDirection);
@@ -303,7 +265,6 @@ void Robot::followLineToCrossSection(int autoTurnDirection, int centeredTurnDire
     }
     lineTracker();
     followCurveInLine(autoTurnDirection);
-  }
 }
   /*
   this function finds the line after collecting free range bag

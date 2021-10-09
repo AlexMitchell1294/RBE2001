@@ -19,4 +19,6 @@ public:
     LineSensors(/* args */);
     bool driveSensorsOnLine();
     float getError();
+    float readLeft();
+    float readRight();
 };

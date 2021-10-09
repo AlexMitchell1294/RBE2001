@@ -6,6 +6,7 @@
 #include <ESP32WifiManager.h>
 #include <WebServer.h>
 #include <ESP32PWM.h>
+#include <PID_v1.h>
 
 /**
  * No arguments
@@ -50,3 +51,4 @@ void Chassis::setDriveEffort(float leftVal, float rightVal){
     left.setEffort(leftVal);
     right.setEffort(rightVal);
 }
+

@@ -15,6 +15,7 @@ class FourBar {
   long getPosition();
   void reset();
   void setup();
+  void moveTo(int pos);
   //    static portMUX_TYPE mux;
 
  private:
@@ -24,6 +25,8 @@ class FourBar {
   const int AIN1 = 27;
   const int ENCA = 19;
   const int ENCB = 18;
+
+  const float kpA = 0.05;
 
   const int bottomSafety = 0;
   const int topSafety = 12500;

@@ -25,7 +25,7 @@ void IRAM_ATTR isr() {
   newVal = (digitalRead(18) << 1) | digitalRead(19);
 
   out = encoderTable[oldVal][newVal];
-  count += out;
+  count -= out;
   portEXIT_CRITICAL_ISR(&mux);
 }
 
@@ -95,4 +95,16 @@ void FourBar::setEffort(int effort, bool clockwise) {
   }
   int value = constrain(effort, 0, 255);
   analogWrite(PWM, value);
+}
+
+void FourBar::moveTo(int pos){
+    int readVal = getPosition();
+    float error = readVal - pos;
+    while(1){
+      readVal = getPosition();
+      error = readVal - pos;
+      if (error >= 10 || error <= -10) {
+        setEffort(error*kpA);
+      }
+    } 
 }
