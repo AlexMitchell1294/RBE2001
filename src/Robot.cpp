@@ -4,7 +4,7 @@ const double KpD=0.03;
 const double KdD = 0.1;
 const double KiD = 0.0;
 extern double setpoint, inputValue, outputValue;
-Timer printTimer(500);
+Timer printTimer(10);
 
 /**
  * Any method that used more than one component of the robot is here. May be cleaner to add another "auto" file but most of these would also end up in there. Something to think about

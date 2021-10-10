@@ -1,6 +1,9 @@
 #include "FourBar.h"
 
 #include <RBE1001Lib.h>
+
+Timer armTimer(10);
+
 int encoderTable[4][4] = {
   {0,-1,1,0,},
   {1,0,0,-1,},
@@ -97,20 +100,35 @@ void FourBar::setEffort(int effort, bool clockwise) {
   analogWrite(PWM, value);
 }
 
+float FourBar::setEffortWihtoutDB(int effort){
+  float motorEffort = 0.0;
+  if (effort < 0){
+    motorEffort = (effort/255)*(255-120)-120;
+    setEffort(-motorEffort, true);
+  }
+  else{
+    motorEffort = (effort/255)*(255-145)+145;
+    setEffort(motorEffort, false);
+  }
+  return motorEffort;
+}
+
 void FourBar::moveTo(int pos){
     int readVal = getPosition();
     float error = pos-readVal;
     float errorTotal = 0;
     float lastError = 0; 
     while(1){
-      printf("%d: \t %d:\t %f:\n", readVal, pos, error);
-      readVal = getPosition();
-      error = pos-readVal;
-      errorTotal += error;
-      if (error >= 50 || error <= -50) {
-        setEffort(error*kpA+errorTotal*kiA + (error - lastError) * kdA);
-        lastError = error;
-      }
-      else break;
-    } 
+        if (armTimer.isExpired()){
+          printf("%d: \t %d:\t %f:\n", readVal, pos, error);
+          readVal = getPosition();
+          error = pos-readVal;
+          errorTotal += error;
+          if ((error >= 25 || error <= -25)) {
+            setEffortWihtoutDB((int) (error*kpA + errorTotal*kiA + (error - lastError) * kdA));
+            lastError = error;
+          }
+          else break;
+      } 
+    }
 }
