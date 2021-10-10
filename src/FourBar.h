@@ -27,6 +27,8 @@ class FourBar {
   const int ENCB = 18;
 
   const float kpA = 1.5;
+  const float kiA = 1.0;
+  const float kdA = 1.0;
 
   const int bottomSafety = 0;
   const int topSafety = 12500;
