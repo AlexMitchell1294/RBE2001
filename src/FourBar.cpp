@@ -102,12 +102,13 @@ void FourBar::setEffort(int effort, bool clockwise) {
 
 float FourBar::setEffortWihtoutDB(int effort){
   float motorEffort = 0.0;
-  if (effort < 0){
-    motorEffort = (effort/255)*(255-120)-120;
+  float effortG = effort;
+  if (effortG < 0){
+    motorEffort = ((effortG/255)*(255-107))-107;
     setEffort(-motorEffort, true);
   }
   else{
-    motorEffort = (effort/255)*(255-145)+145;
+    motorEffort = ((effortG/255)*(255-120))+120;
     setEffort(motorEffort, false);
   }
   return motorEffort;
@@ -118,17 +119,30 @@ void FourBar::moveTo(int pos){
     float error = pos-readVal;
     float errorTotal = 0;
     float lastError = 0; 
+    float a = 0;
+    int newPosition=0;
+    int oldPosition=0;
+    long sampleTime = 100;
+    int CPR = 270;
+    int rpm=0;
     while(1){
         if (armTimer.isExpired()){
-          printf("%d: \t %d:\t %f:\n", readVal, pos, error);
+          printf("CurrentEncoder: %d  SetEncoder: %d PIDOutput: %f\tsetEffortWithoutDB: %f\t RPM: %d Time:%lu\n",
+           readVal, pos, (error*kpA + errorTotal*kiA + (error - lastError) * kdA), a, rpm, millis());
+           newPosition = getPosition();
+          rpm = ((newPosition-oldPosition)*1000*60)/(sampleTime*CPR);
           readVal = getPosition();
           error = pos-readVal;
           errorTotal += error;
           if ((error >= 25 || error <= -25)) {
-            setEffortWihtoutDB((int) (error*kpA + errorTotal*kiA + (error - lastError) * kdA));
+            a = setEffortWihtoutDB((int) (error*kpA + errorTotal*kiA + (error - lastError) * kdA));
             lastError = error;
           }
           else break;
+          oldPosition  = newPosition;
       } 
     }
+      printf("CurrentEncoder: %d \t SetEncoder: %d\t PIDOutput: %f\tsetEffortWithoutDB: %d\t RPM: %d Time:%d\n",
+           readVal, pos, (error*kpA + errorTotal*kiA + (error - lastError) * kdA), a, rpm, millis());
+    setEffort(0);
 }

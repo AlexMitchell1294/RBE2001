@@ -19,7 +19,7 @@
 
 const int button = 13;
 long Count = 0;
-long timeToPrint = 0;
+//long timeToPrint = 0;
 long now = 0;
 long newPosition = 0;
 long oldPosition = 0;
@@ -28,6 +28,7 @@ int speedInRPM = 0;
 int CPR = 270;
 
 int armP = 90;
+Timer timeToPrint(10);
 
 Robot robot;
 FourBar blueMotor;
@@ -51,72 +52,22 @@ void setup() {
   robot.linesensors.rightLine.attach(36);
 }
 //(nwePosition- old position) * 1000) * 60 /(100*CPR), cpr = counts per revolution = 270
-int a = 0;
+int a = -255;
+int b=0;
 void loop()
 {
-  code = decoder.getKeyCode();
-  if(code != 65535){
-    Serial.println(code);
-  }
-  blueMotor.setEffort(a);
-  Serial.println(blueMotor.getPosition());
-  if (code==remote9){
-    a +=5;
-    Serial.println(blueMotor.getPosition());
-  }
-  else if(code==remote8){
-    a -= 5;
-    Serial.println(blueMotor.getPosition());
-  }
-  else if (code==remote7){
-    a= 0;
-    Serial.println(blueMotor.getPosition());
-  }
-  else if (code==remote6){
-    a= -255;
-    Serial.println(blueMotor.getPosition());
-  }
-  else if (code==remote5){
-    a= 255;
-    Serial.println(blueMotor.getPosition());
-  }
-  else if (code==remote4){
-    robot.arm.armTurn(90);
-    Serial.println(blueMotor.getPosition());
-  }
-    else if (code==remote3){
-    robot.arm.armTurn(135);
-    Serial.println(blueMotor.getPosition());
-  }
-      else if (code==remoteLeft){
-    robot.driveToObject(8);
-    Serial.println(blueMotor.getPosition());
-  }
-  else if (code==remoteRight){
-    blueMotor.moveTo(degreeArm45);
-    Serial.println(blueMotor.getPosition());
-  }
-  else if (code==remoteVolPlus){
-    blueMotor.reset();
-    Serial.println(blueMotor.getPosition());
-  }
-    else if (code==remoteVolMinus){
-    blueMotor.moveTo(3000);
-    Serial.println(blueMotor.getPosition());
-  }
-  else if(code==remote1){
-    while(1){
-      code = decoder.getKeyCode();
-      robot.lineTracker();
-      if(code==remote2 || robot.bothLineStop()){
-        code = remote2;
-        break;
+  if(timeToPrint.isExpired()){
+    if(a>=255){
+      while(1){
+        blueMotor.setEffort(0);
       }
     }
-  }
-    else if(code==remote2){
-    robot.chassis.left.setEffort(0);
-    robot.chassis.right.setEffort(0);
+    else a+=1;
+    b=blueMotor.setEffortWihtoutDB(a);
+    newPosition = blueMotor.getPosition();
+    int rpm = ((newPosition-oldPosition)*1000*60)/(sampleTime*CPR);
+    printf("userInput: %d AppliedEffort: %d RPM: %d Time: %d\n",a,b, rpm, millis());
+    oldPosition = newPosition;
   }
 }
 

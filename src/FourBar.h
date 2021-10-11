@@ -11,7 +11,7 @@
 #include <Timer.h>
 
 const int degreeArm45 = 6630;
-const int degreeArm45 = 8750;
+const int degreeArm25 = 8750;
 
 class FourBar {
  public:
