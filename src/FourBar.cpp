@@ -102,16 +102,16 @@ void FourBar::setEffort(int effort, bool clockwise) {
 
 float FourBar::setEffortWihtoutDB(int effort){
   float motorEffort = 0.0;
-  float effortG = effort;
+  float effortG = effort;//set effort as float
   if (effortG < 0){
-    motorEffort = ((effortG/255)*(255-107))-107;
+    motorEffort = ((effortG/255)*(255-107))-107;//down calc
     setEffort(-motorEffort, true);
   }
   else{
-    motorEffort = ((effortG/255)*(255-120))+120;
+    motorEffort = ((effortG/255)*(255-120))+120;//up calc
     setEffort(motorEffort, false);
   }
-  return motorEffort;
+  return motorEffort;//return for print
 }
 
 void FourBar::moveTo(int pos){
@@ -126,23 +126,23 @@ void FourBar::moveTo(int pos){
     int CPR = 270;
     int rpm=0;
     while(1){
-        if (armTimer.isExpired()){
+        if (armTimer.isExpired()){//if arm timer 100ms expired update vars
           printf("CurrentEncoder: %d  SetEncoder: %d PIDOutput: %f\tsetEffortWithoutDB: %f\t RPM: %d Time:%lu\n",
-           readVal, pos, (error*kpA + errorTotal*kiA + (error - lastError) * kdA), a, rpm, millis());
-           newPosition = getPosition();
-          rpm = ((newPosition-oldPosition)*1000*60)/(sampleTime*CPR);
-          readVal = getPosition();
-          error = pos-readVal;
-          errorTotal += error;
+           readVal, pos, (error*kpA + errorTotal*kiA + (error - lastError) * kdA), a, rpm, millis());//print vars
+           newPosition = getPosition();//new postion
+          rpm = ((newPosition-oldPosition)*1000*60)/(sampleTime*CPR);//new rpm
+          readVal = getPosition();//get current position
+          error = pos-readVal;//get error of arm
+          errorTotal += error;//tally total
           if ((error >= 25 || error <= -25)) {
-            a = setEffortWihtoutDB((int) (error*kpA + errorTotal*kiA + (error - lastError) * kdA));
-            lastError = error;
+            a = setEffortWihtoutDB((int) (error*kpA + errorTotal*kiA + (error - lastError) * kdA));//set effort
+            lastError = error;//last error is current error
           }
-          else break;
-          oldPosition  = newPosition;
+          else break;//break from while loop
+          oldPosition  = newPosition;//record current posision
       } 
     }
       printf("CurrentEncoder: %d \t SetEncoder: %d\t PIDOutput: %f\tsetEffortWithoutDB: %d\t RPM: %d Time:%d\n",
-           readVal, pos, (error*kpA + errorTotal*kiA + (error - lastError) * kdA), a, rpm, millis());
-    setEffort(0);
+           readVal, pos, (error*kpA + errorTotal*kiA + (error - lastError) * kdA), a, rpm, millis());//last print
+    setEffort(0);//stop motor
 }
