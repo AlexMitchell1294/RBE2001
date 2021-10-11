@@ -13,6 +13,11 @@ int encoderTable[4][4] = {
 int oldVal = 0;
 int newVal = 0;
 volatile int out = 0;
+float errorTotal = 0;
+float lastError = 0; 
+int newPositionArm=0;
+int oldPositionArm=0;
+int rpm=0;
 
 long count = 0;  // encoder counter
 // Mutex for the count critical variable
@@ -115,34 +120,19 @@ float FourBar::setEffortWihtoutDB(int effort){
 }
 
 void FourBar::moveTo(int pos){
-    int readVal = getPosition();
-    float error = pos-readVal;
-    float errorTotal = 0;
-    float lastError = 0; 
-    float a = 0;
-    int newPosition=0;
-    int oldPosition=0;
-    long sampleTime = 100;
-    int CPR = 270;
-    int rpm=0;
-    while(1){
-        if (armTimer.isExpired()){//if arm timer 100ms expired update vars
-          printf("CurrentEncoder: %d  SetEncoder: %d PIDOutput: %f\tsetEffortWithoutDB: %f\t RPM: %d Time:%lu\n",
-           readVal, pos, (error*kpA + errorTotal*kiA + (error - lastError) * kdA), a, rpm, millis());//print vars
-           newPosition = getPosition();//new postion
-          rpm = ((newPosition-oldPosition)*1000*60)/(sampleTime*CPR);//new rpm
-          readVal = getPosition();//get current position
-          error = pos-readVal;//get error of arm
-          errorTotal += error;//tally total
-          if ((error >= 25 || error <= -25)) {
-            a = setEffortWihtoutDB((int) (error*kpA + errorTotal*kiA + (error - lastError) * kdA));//set effort
-            lastError = error;//last error is current error
-          }
-          else break;//break from while loop
-          oldPosition  = newPosition;//record current posision
-      } 
-    }
-      printf("CurrentEncoder: %d \t SetEncoder: %d\t PIDOutput: %f\tsetEffortWithoutDB: %d\t RPM: %d Time:%d\n",
-           readVal, pos, (error*kpA + errorTotal*kiA + (error - lastError) * kdA), a, rpm, millis());//last print
+    if (armTimer.isExpired()){//if arm timer 100ms expired update vars
+      newPositionArm = getPosition();//new postion
+      int readVal = getPosition();
+      float error = pos-readVal;
+      readVal = getPosition();//get current position
+      error = pos-readVal;//get error of arm
+      errorTotal += error;//tally total
+      if ((error >= 25 || error <= -25)) {
+        setEffortWihtoutDB((int) (error*kpA + errorTotal*kiA + (error - lastError) * kdA));//set effort
+        lastError = error;//last error is current error
+      }
+      else;//break from while loop
+      oldPositionArm  = newPositionArm;//record current posision
+  } 
     setEffort(0);//stop motor
 }

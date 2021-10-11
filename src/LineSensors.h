@@ -21,4 +21,5 @@ public:
     float getError();
     float readLeft();
     float readRight();
+    bool atCrossSection();
 };

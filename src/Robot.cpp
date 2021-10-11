@@ -33,15 +33,6 @@ void Robot::turnWithLine(int direction)
 
 
   //stop turning once drive sensors are back on a line
-  while (true)
-  {
-    if (linesensors.driveSensorsOnLine())
-    {
-      chassis.left.setEffort(0);
-      chassis.right.setEffort(0);
-      break;
-    }
-  }
 }
 
 /*

@@ -43,7 +43,7 @@ void Chassis::forward(float cm)
 {
     float degree = cm * degreesPerCMForWheel;
     left.startMoveFor(degree, 360);
-    right.moveFor(degree, 360);
+    right.startMoveFor(degree, 360);
 }
 
 

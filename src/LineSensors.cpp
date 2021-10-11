@@ -26,6 +26,7 @@ public:
     float getError();
     float readLeft();
     float readRight();
+    bool atCrossSection();
 };
 
 LineSensors::LineSensors(/* args */)
@@ -47,4 +48,8 @@ float LineSensors::readLeft(){
 
 float LineSensors::readRight(){
   return leftLine.readVoltage();
+}
+
+bool LineSensors::atCrossSection(){
+  return (readLeft() > 2 && readRight() > 2);
 }

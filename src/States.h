@@ -1,0 +1,11 @@
+enum RobotStates{
+    PAUSED,
+    FOLLOWLINE,
+    TURN,
+    PICKUPPLATE,
+    DROPOFFPLATE,
+    CROSSLINE,
+    GRIP45,
+    AFTERPICKUPRESET
+
+};
