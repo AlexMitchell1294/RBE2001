@@ -7,7 +7,11 @@
 #include <WebServer.h>
 #include <ESP32PWM.h>
 #include <PID_v1.h>
+#include <ESP32PWM.h>
+#include <Timer.h>
 
+Timer driveTimer(10);
+float drivekp = 0.5;
 /**
  * No arguments
  * initlizes motor and forward function as well as attaches left and right to esp.
@@ -25,6 +29,7 @@ public:
 
     void forward(float cm);
     void setDriveEffort(float leftVal, float rightVal);
+    void driveFor(int setDistance);
 };
 
 Chassis::Chassis()
@@ -50,5 +55,16 @@ void Chassis::forward(float cm)
 void Chassis::setDriveEffort(float leftVal, float rightVal){
     left.setEffort(leftVal);
     right.setEffort(rightVal);
+}
+
+void Chassis::driveFor(int setDistance){
+    int inputValue = left.nowEncoder;
+    float error = -setDistance + inputValue;
+    if (driveTimer.isExpired()) {
+        if (error >= 2.5 || error <= -2.5) {
+          setDriveEffort(error*drivekp, error*drivekp);
+        }
+    }
+  setDriveEffort(0,0);
 }
 
