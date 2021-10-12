@@ -6,6 +6,7 @@ enum RobotStates{
     DROPOFFPLATE,
     CROSSLINE,
     GRIP45,
-    AFTERPICKUPRESET
+    AFTERPICKUPRESET,
+    DRIVEFOR
 
 };

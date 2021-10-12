@@ -47,6 +47,8 @@ int centerTracker;
 int pickUPOrDropOff = 1;
 int armEncoderSet = 0;
 int setDistance = 8;
+bool startOfCenter = true;
+int driveDistance = 0;
 
 
 void setup() {
@@ -87,8 +89,6 @@ void loop()
         }
         break;
     case TURN:
-        robot.centerOnCrossSection(centerTracker);
-
         if (robot.linesensors.driveSensorsOnLine())
           {
             robot.chassis.left.setEffort(0);
@@ -115,5 +115,11 @@ void loop()
         break;
     case AFTERPICKUPRESET:
         break;
+    case DRIVEFOR:
+        if (startOfCenter = true){
+          driveDistance = robot.chassis.left.nowEncoder;
+          startOfCenter = false;
+        }
+        robot.chassis.driveFor(driveDistance+300);
   }
 }

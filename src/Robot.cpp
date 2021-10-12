@@ -71,15 +71,12 @@ void Robot::FindObject()
 */
 void Robot::driveToObject(double desiredDistance)
 {
-  while(1){
       inputValue = ultrasonic.getDistance();
       float error = -desiredDistance + inputValue;
       if (printTimer.isExpired()) {
         if (error >= 2.5 || error <= -2.5) {
           chassis.setDriveEffort(error*KpD, error*KpD);
         }
-        else break;
-      }
   }
   chassis.setDriveEffort(0,0);
 }
@@ -280,4 +277,6 @@ void Robot::findLine()
     }
   }
 }
+
+
 

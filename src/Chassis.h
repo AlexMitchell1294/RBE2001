@@ -18,4 +18,5 @@ public:
 
     void forward(float cm);
     void setDriveEffort(float, float);
+    void driveFor(int setDistance);
 };
