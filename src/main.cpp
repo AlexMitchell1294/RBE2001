@@ -30,6 +30,8 @@ int CPR = 270;
 
 int armP = 90;
 Timer timeToPrint(10);
+Timer timeToPrintA(100);
+Timer timeToTurn(8000);
 
 Robot robot;
 FourBar blueMotor;
@@ -37,6 +39,9 @@ IRDecoder decoder(15);
 uint16_t code;
 RobotStates currentState = PAUSED;
 RobotStates lastState = FOLLOWLINE;
+RobotStates lastStateRun = currentState;
+HelloDarknessMyOldFriend  stateC = PAUSEDD;
+HelloDarknessMyOldFriend lastStateC = PAUSEDD;
 
 double setpoint, inputValue, outputValue;
 //PID pid(&inputValue, &outputValue, &setpoint, KpD, KiD, KdD, REVERSE);
@@ -46,9 +51,14 @@ double setpoint, inputValue, outputValue;
 int centerTracker;
 int pickUPOrDropOff = 1;
 int armEncoderSet = 0;
-int setDistance = 8;
+int setDistance = 15;
 bool startOfCenter = true;
-int driveDistance = 0;
+int driveDistanceArmSet = 15;
+int driveDistanceArmPickup=10.75;
+int moveOn = 0;
+int dir = -1;
+bool first = true;
+int substate = 0;
 
 
 void setup() {
@@ -61,6 +71,7 @@ void setup() {
   digitalWrite(button, INPUT);
   robot.linesensors.leftLine.attach(39);
   robot.linesensors.rightLine.attach(36);
+  robot.arm.armTurn(130);
 }
 //(nwePosition- old position) * 1000) * 60 /(100*CPR), cpr = counts per revolution = 270
 int a = -255;
@@ -68,58 +79,185 @@ int b=0;
 void loop()
 {
   code = decoder.getKeyCode();
-  if (code==1){
+  if (code==remote1){
     lastState = currentState;
     currentState = PAUSED;
+    lastStateC = stateC;
+    stateC = PAUSEDD;
   }
-  else if(code==2) currentState = lastState;
+  else if(code==remote2) currentState = lastState;
 
-  switch(currentState){
-    case PAUSED:
-        break;
-    case FOLLOWLINE:
-        robot.lineTracker();
-        if(robot.linesensors.atCrossSection()){
-          currentState = TURN;
-          centerTracker = -1;
-        }
-        else if(robot.ultrasonic.getDistance() < 15){
-          if(pickUPOrDropOff == 1) currentState = PICKUPPLATE;
-          else currentState = DROPOFFPLATE;
-        }
-        break;
-    case TURN:
-        if (robot.linesensors.driveSensorsOnLine())
-          {
-            robot.chassis.left.setEffort(0);
-            robot.chassis.right.setEffort(0);
-            currentState = FOLLOWLINE;
+
+  if(code==remote5){
+    blueMotor.setEffort(-255);
+  }
+  else if(code==remote8){
+    blueMotor.setEffort(0);
+  }
+  else if(code==remote9){
+    blueMotor.setEffort(255);
+  }
+    else if(code==remote1){
+    blueMotor.reset();
+  }
+    else if(code==remoteLeft){
+      currentState = PICKUPPLATE;
+      stateC = PICKUP45D;
+  }
+
+  switch(stateC){
+
+    case PAUSEDD:
+      blueMotor.setEffort(0);
+      robot.chassis.setDriveEffort(0,0);
+      break;
+    case PICKUP45D:
+      switch(currentState){
+        case PICKUPPLATE:
+          if(timeToPrint.isExpired()) {
+            if(timeToPrintA.isExpired()) printf("%d\n", blueMotor.getPosition());
+            blueMotor.moveTo(armEncoderSet);
+            int error = armEncoderSet -blueMotor.getPosition();
+            if((error <= 25 && error >= -25)){
+              blueMotor.setEffort(0);
+              robot.arm.armTurn(180);
+              armEncoderSet += 800;
+              currentState = DRIVETOOBJECT;
+            }
           }
+          break;
+      case DRIVETOOBJECT:
+          if(timeToPrint.isExpired()) {
+            robot.driveToObject(driveDistanceArmPickup);
+          }
+          if(robot.ultrasonic.getDistance() < 11.5) {
+            robot.chassis.setDriveEffort(0,0);
+            currentState = GRIP45;
+            timeToTurn.reset();
+          }  
+          break;
+      case GRIP45:
+          blueMotor.moveTo(armEncoderSet);
+          if(timeToTurn.isExpired()) first = false; 
+          if(!first || timeToTurn.isExpired()){
+            if ((armEncoderSet <= blueMotor.getPosition() +5 && armEncoderSet >= blueMotor.getPosition() -5)){
+              robot.arm.armTurn(130);
+              armEncoderSet += 2000;
+              currentState = PAUSED;
+              timeToTurn.reset();
+              first = true;
+            }
+            else{
+            first = false;
+            }
+          }
+          break;
+      }
+      break;
 
+      case EDITD:
         break;
-    case PICKUPPLATE:
-        blueMotor.moveTo(armEncoderSet);
-        if((armEncoderSet == blueMotor.getPosition() +5 || armEncoderSet == blueMotor.getPosition() -5) 
-        && robot.ultrasonic.getDistance() == setDistance){
-          armEncoderSet += 100;
-          currentState = GRIP45;
-        }
+      default:
         break;
-    case GRIP45:
-        blueMotor.moveTo(armEncoderSet);
-        if ((armEncoderSet == blueMotor.getPosition() +5 || armEncoderSet == blueMotor.getPosition() -5)){
-          robot.arm.armTurn(45);
-          armEncoderSet += 1000;
-          currentState = AFTERPICKUPRESET;
-        }
-        break;
-    case AFTERPICKUPRESET:
-        break;
-    case DRIVEFOR:
-        if (startOfCenter = true){
-          driveDistance = robot.chassis.left.nowEncoder;
-          startOfCenter = false;
-        }
-        robot.chassis.driveFor(driveDistance+300);
+    
   }
+  
+
+  // switch(currentState){
+  //   case PAUSED:
+  //       blueMotor.setEffort(0);
+  //       robot.chassis.setDriveEffort(0,0);
+  //       break;
+  //   case EDIT:
+  //       break;
+  //   case FOLLOWLINE:
+  //       robot.lineTracker();
+  //       if(robot.linesensors.atCrossSection()){
+
+  //         currentState = TURN;
+  //         centerTracker = -1;
+  //       }
+  //       if(robot.ultrasonic.getDistance() <= 20){
+  //         robot.chassis.setDriveEffort(0,0);
+  //         if(pickUPOrDropOff == 1) {
+  //           currentState = PICKUPPLATE;
+  //           armEncoderSet = degreeArm45;
+  //         }
+  //         else {
+  //           currentState = DROPOFFPLATE;
+  //           armEncoderSet = degreeArm45;
+  //         }
+  //       }
+  //       break;
+  //   case TURN:
+  //       if (first){
+  //         robot.chassis.forward(8);
+  //         first=false;
+  //       }
+  //       robot.turnWithLine(centerTracker);
+  //       if (robot.linesensors.driveSensorsOnLine())
+  //         {
+  //          robot.chassis.setDriveEffort(-.6, .6);
+  //          for(int i=0; i<=1000; i++);
+  //         currentState = FOLLOWLINE;
+  //         }
+
+  //       break;
+  //   case PICKUPPLATE:
+  //       if(timeToPrint.isExpired()) {
+  //         if(timeToPrintA.isExpired()) printf("%d\n", blueMotor.getPosition());
+  //         blueMotor.moveTo(armEncoderSet);
+  //         int error = armEncoderSet -blueMotor.getPosition();
+  //         if((error <= 25 && error >= -25)){
+  //           blueMotor.setEffort(0);
+  //           robot.arm.armTurn(180);
+  //           armEncoderSet += 800;
+  //           currentState = DRIVETOOBJECT;
+  //         }
+  //       }
+  //       break;
+  //   case DRIVETOOBJECT:
+  //       if(timeToPrint.isExpired()) {
+  //         robot.driveToObject(driveDistanceArmPickup);
+  //       }
+  //       if(robot.ultrasonic.getDistance() < 11.5) {
+  //         robot.chassis.setDriveEffort(0,0);
+  //         currentState = GRIP45;
+  //         timeToTurn.reset();
+  //       }  
+  //       break;
+  //   case GRIP45:
+  //       blueMotor.moveTo(armEncoderSet);
+  //       if(timeToTurn.isExpired()) first = false; 
+  //       if(!first || timeToTurn.isExpired()){
+  //         if ((armEncoderSet <= blueMotor.getPosition() +5 && armEncoderSet >= blueMotor.getPosition() -5)){
+  //           robot.arm.armTurn(130);
+  //           armEncoderSet += 2000;
+  //           currentState = AFTERPICKUPRESET;
+  //           timeToTurn.reset();
+  //           first = true;
+  //         }
+  //         else{
+  //         first = false;
+  //         }
+  //       }
+  //       break;
+  //   case AFTERPICKUPRESET:
+  //   if(timeToPrint.isExpired()){
+  //     Serial.println(armEncoderSet);
+  //   }
+  //       blueMotor.moveTo(armEncoderSet);
+  //       if(timeToTurn.isExpired()) first = false; 
+  //       if(!first || timeToTurn.isExpired()){
+  //         Serial.println(armEncoderSet);
+  //         blueMotor.setEffort(0);
+  //        currentState = TURN;
+  //        first = false;
+  //       }
+  //       break;
+
+  //   default:
+  //     break;
+  //   }
+  // lastStateRun = currentState;
 }
