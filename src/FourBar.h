@@ -10,8 +10,8 @@
 #include <ESP32PWM.h>
 #include <Timer.h>
 
-const int degreeArm45 = 6630;
-const int degreeArm25 = 8750;
+const int degreeArm45 = 6550;
+const int degreeArm25 = 9000;
 
 class FourBar {
  public:
@@ -26,12 +26,12 @@ class FourBar {
 
  private:
   const int PWM = 5;
-  const int AIN2 = 23;
-  const int AIN1 = 27;
+  const int AIN2 = 22;
+  const int AIN1 = 23;
   const int ENCA = 19;
   const int ENCB = 18;
 
   const float kpA = 0.4;
-  const float kiA = 0.00002;
-  const float kdA = 0.0001;
+  const float kiA = 0.00000;
+  const float kdA = 0.0000;
 };

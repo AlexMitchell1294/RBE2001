@@ -11,8 +11,9 @@ class Chassis
 {
 
 public:
-    Chassis();
-    Motor left, right;
+    // Chassis();
+    LeftMotor left;
+    RightMotor right;
     const float diameterWheel = 7.2;
     const float degreesPerCMForWheel = 360 / (3.14 * diameterWheel);
 

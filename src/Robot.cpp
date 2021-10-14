@@ -1,7 +1,7 @@
 #include <Robot.h>
 extern PID pid;
 const double KpD=0.03;
-const double KdD = 0.1;
+const double KdD = 0.8;
 const double KiD = 0.0;
 extern double setpoint, inputValue, outputValue;
 Timer printTimer(10);
@@ -29,7 +29,7 @@ void Robot::turnWithLine(int direction)
   chassis.right.setSpeed(-120 * direction);
 
   //Meant to give time for the sensors to get off a line if already on one
-  delay(200);
+  delay(500);
 
 
   //stop turning once drive sensors are back on a line
@@ -74,11 +74,10 @@ void Robot::driveToObject(double desiredDistance)
       inputValue = ultrasonic.getDistance();
       float error = -desiredDistance + inputValue;
       if (printTimer.isExpired()) {
-        if (error >= 2.5 || error <= -2.5) {
+        if (error >= .25 || error <= -.25) {
           chassis.setDriveEffort(error*KpD, error*KpD);
         }
   }
-  chassis.setDriveEffort(0,0);
 }
 
 /*
@@ -231,7 +230,7 @@ void Robot::lineTracker()
  */
 void Robot::centerOnCrossSection(int direction)
 {
-  chassis.forward(9);
+  chassis.forward(8);
   //+1 is turn right
   //-1 is turn left
   //0 only centers does not turn

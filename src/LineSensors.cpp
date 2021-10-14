@@ -35,7 +35,7 @@ LineSensors::LineSensors(/* args */)
 
 bool LineSensors::driveSensorsOnLine()
 {
-  return leftLine.readVoltage() >= 1.5 && rightLine.readVoltage() >= 1.5;
+  return ((getError() <= 0.05 || getError() >= 0.05) && ((leftLine.readVoltage() >= 2) || (rightLine.readVoltage() >=2)));
 }
 
 float LineSensors::getError(){

@@ -31,7 +31,7 @@ int CPR = 270;
 int armP = 90;
 Timer timeToPrint(10);
 Timer timeToPrintA(100);
-Timer timeToTurn(8000);
+Timer timeToTurn(3000);
 
 Robot robot;
 FourBar blueMotor;
@@ -85,24 +85,57 @@ void loop()
     lastStateC = stateC;
     stateC = PAUSEDD;
   }
-  else if(code==remote2) currentState = lastState;
+  else if(code==remote2){ 
+    currentState = lastState;
+    stateC = lastStateC;
+  }
 
 
-  if(code==remote5){
+  else if(code==remote5){
     blueMotor.setEffort(-255);
+    stateC = EDITD;
   }
   else if(code==remote8){
     blueMotor.setEffort(0);
+    stateC = EDITD;
   }
   else if(code==remote9){
     blueMotor.setEffort(255);
-  }
-    else if(code==remote1){
-    blueMotor.reset();
+    stateC = EDITD;
   }
     else if(code==remoteLeft){
       currentState = PICKUPPLATE;
       stateC = PICKUP45D;
+      armEncoderSet = degreeArm45;
+  }
+      else if(code==remoteRight){
+      currentState = PICKUPPLATE;
+      stateC = PICKUP25D;
+      armEncoderSet = degreeArm25;
+  }
+      else if(code==remoteUp){
+      currentState = PICKUPPLATE;
+      stateC = PICKUPG;
+      armEncoderSet = 0;
+  }
+      else if(code==remoteVolMinus){
+      currentState = PICKUPPLATE;
+      stateC = DROPOFF45;
+      armEncoderSet = degreeArm45+2700;
+  }
+      else if(code==remotePlayPause){
+      currentState = PICKUPPLATE;
+      stateC = DROPOFF45;
+      armEncoderSet = 800;
+  }
+      else if(code==remoteSetup){
+      currentState = PICKUPPLATE;
+      stateC = LINEFOLLOWD;
+      armEncoderSet = 800;
+  }
+      else if(code==remoteEnterSave){
+      currentState = PICKUPPLATE;
+      stateC = CROSSOVER;
   }
 
   switch(stateC){
@@ -130,7 +163,7 @@ void loop()
           if(timeToPrint.isExpired()) {
             robot.driveToObject(driveDistanceArmPickup);
           }
-          if(robot.ultrasonic.getDistance() < 11.5) {
+          if(robot.ultrasonic.getDistance() < 12.5) {
             robot.chassis.setDriveEffort(0,0);
             currentState = GRIP45;
             timeToTurn.reset();
@@ -143,7 +176,7 @@ void loop()
             if ((armEncoderSet <= blueMotor.getPosition() +5 && armEncoderSet >= blueMotor.getPosition() -5)){
               robot.arm.armTurn(130);
               armEncoderSet += 2000;
-              currentState = PAUSED;
+              currentState = BACKUP;
               timeToTurn.reset();
               first = true;
             }
@@ -152,10 +185,237 @@ void loop()
             }
           }
           break;
+      case BACKUP:
+          blueMotor.moveTo(armEncoderSet);
+          if ((armEncoderSet <= blueMotor.getPosition() +5 && armEncoderSet >= blueMotor.getPosition() -5)){
+            robot.chassis.forward(-15);
+            stateC = PAUSEDD;
+          }
+          break;
       }
       break;
 
-      case EDITD:
+    case PICKUP25D:
+      switch(currentState){
+        case PICKUPPLATE:
+          if(timeToPrint.isExpired()) {
+            if(timeToPrintA.isExpired()) printf("%d\n", blueMotor.getPosition());
+            blueMotor.moveTo(armEncoderSet);
+            int error = armEncoderSet -blueMotor.getPosition();
+            if((error <= 25 && error >= -25)){
+              blueMotor.setEffort(0);
+              robot.arm.armTurn(180);
+              armEncoderSet += 1000;
+              currentState = DRIVETOOBJECT;
+            }
+          }
+          break;
+      case DRIVETOOBJECT:
+          if(timeToPrint.isExpired()) {
+            robot.driveToObject(driveDistanceArmPickup-.5);
+          }
+          if(robot.ultrasonic.getDistance() < 12.5) {
+            robot.chassis.setDriveEffort(0,0);
+            currentState = GRIP45;
+            timeToTurn.reset();
+          }  
+          break;
+      case GRIP45:
+          blueMotor.moveTo(armEncoderSet);
+          if(timeToTurn.isExpired()) first = false; 
+          if(!first || timeToTurn.isExpired()){
+            if ((armEncoderSet <= blueMotor.getPosition() +5 && armEncoderSet >= blueMotor.getPosition() -5)){
+              robot.arm.armTurn(130);
+              armEncoderSet += 2000;
+              currentState = BACKUP;
+              timeToTurn.reset();
+              first = true;
+            }
+            else{
+            first = false;
+            }
+          }
+          break;
+      case BACKUP:
+          blueMotor.moveTo(armEncoderSet);
+          if ((armEncoderSet <= blueMotor.getPosition() +5 && armEncoderSet >= blueMotor.getPosition() -5)){
+            robot.chassis.forward(-15);
+            stateC = PAUSEDD;
+            blueMotor.setEffort(0);
+          }
+          break;
+      }
+      break;
+
+    case PICKUPG:
+      switch(currentState){
+        case PICKUPPLATE:
+          if(timeToPrint.isExpired()) {
+            if(timeToPrintA.isExpired()) printf("%d\n", blueMotor.getPosition());
+            blueMotor.moveTo(0);
+            int error = armEncoderSet -blueMotor.getPosition();
+            if((error <= 25 && error >= -25)){
+              blueMotor.setEffort(0);
+              robot.arm.armTurn(180);
+              armEncoderSet += 200;
+              currentState = DRIVETOOBJECT;
+            }
+          }
+          break;
+      case DRIVETOOBJECT:
+          if(timeToPrint.isExpired()) {
+            robot.driveToObject(2.75);
+          }
+          if(robot.ultrasonic.getDistance() < 5) {
+            robot.chassis.setDriveEffort(0,0);
+            currentState = GRIP45;
+            timeToTurn.reset();
+          }  
+          break;
+      case GRIP45:
+          blueMotor.moveTo(armEncoderSet);
+          if(timeToTurn.isExpired()) first = false; 
+          if(!first || timeToTurn.isExpired()){
+            if ((armEncoderSet <= blueMotor.getPosition() +5 && armEncoderSet >= blueMotor.getPosition() -5)){
+              robot.arm.armTurn(130);
+              armEncoderSet += 800;
+              currentState = BACKUP;
+              timeToTurn.reset();
+              first = true;
+            }
+            else{
+            first = false;
+            }
+          }
+          break;
+      case BACKUP:
+          blueMotor.moveTo(armEncoderSet);
+          if ((armEncoderSet <= blueMotor.getPosition() +5 && armEncoderSet >= blueMotor.getPosition() -5)){
+            robot.chassis.forward(-15);
+            stateC = PAUSEDD;
+            blueMotor.setEffort(0);
+          }
+          break;
+      }
+      break;
+
+      case DROPOFF45:
+        switch(currentState){
+          case PICKUPPLATE:
+            if(timeToPrint.isExpired()) {
+              if(timeToPrintA.isExpired()) printf("%d\n", blueMotor.getPosition());
+              blueMotor.moveTo(armEncoderSet);
+              int error = armEncoderSet -blueMotor.getPosition();
+              if((error <= 25 && error >= -25)){
+                blueMotor.setEffort(0);
+                robot.arm.armTurn(130);
+                currentState = DRIVETOOBJECT;
+              }
+            }
+            break;
+        case DRIVETOOBJECT:
+            if(timeToPrint.isExpired()) {
+              robot.driveToObject(driveDistanceArmPickup);
+            }
+            if(robot.ultrasonic.getDistance() < 13) {
+              robot.chassis.setDriveEffort(0,0);
+              currentState = GRIP45;
+              timeToTurn.reset();
+            }  
+            break;
+        case GRIP45:
+            blueMotor.moveTo(armEncoderSet);
+            if(timeToTurn.isExpired()) first = false; 
+            if(!first || timeToTurn.isExpired()){
+              if ((armEncoderSet <= blueMotor.getPosition() +5 && armEncoderSet >= blueMotor.getPosition() -5)){
+                robot.arm.armTurn(180);
+                armEncoderSet -= 500;
+                currentState = BACKUP;
+                timeToTurn.reset();
+                first = true;
+              }
+              else{
+              first = false;
+              }
+            }
+            break;
+        case BACKUP:
+            blueMotor.moveTo(armEncoderSet);
+            if ((armEncoderSet <= blueMotor.getPosition() +5 && armEncoderSet >= blueMotor.getPosition() -5)){
+              robot.chassis.forward(-15);
+              stateC = PAUSEDD;
+            }
+            break;
+        }
+      break;
+
+      case DROPOFFG:
+        switch(currentState){
+          case PICKUPPLATE:
+            if(timeToPrint.isExpired()) {
+              if(timeToPrintA.isExpired()) printf("%d\n", blueMotor.getPosition());
+              blueMotor.moveTo(armEncoderSet);
+              int error = armEncoderSet -blueMotor.getPosition();
+              if((error <= 25 && error >= -25)){
+                blueMotor.setEffort(0);
+                robot.arm.armTurn(130);
+                currentState = DRIVETOOBJECT;
+              }
+            }
+            break;
+        case DRIVETOOBJECT:
+            if(timeToPrint.isExpired()) {
+              robot.driveToObject(driveDistanceArmPickup);
+            }
+            if(robot.ultrasonic.getDistance() < 13) {
+              robot.chassis.setDriveEffort(0,0);
+              currentState = GRIP45;
+              timeToTurn.reset();
+            }  
+            break;
+        case GRIP45:
+            blueMotor.moveTo(armEncoderSet);
+            if(timeToTurn.isExpired()) first = false; 
+            if(!first || timeToTurn.isExpired()){
+              if ((armEncoderSet <= blueMotor.getPosition() +5 && armEncoderSet >= blueMotor.getPosition() -5)){
+                robot.arm.armTurn(180);
+                currentState = BACKUP;
+                timeToTurn.reset();
+                first = true;
+              }
+              else{
+              first = false;
+              }
+            }
+            break;
+        case BACKUP:
+            blueMotor.moveTo(armEncoderSet);
+            if ((armEncoderSet <= blueMotor.getPosition() +5 && armEncoderSet >= blueMotor.getPosition() -5)){
+              robot.chassis.forward(-15);
+              stateC = PAUSEDD;
+            }
+            break;
+        }
+      break;
+
+    case LINEFOLLOWD:
+      robot.lineTracker();
+      if(robot.linesensors.atCrossSection()){
+        robot.centerOnCrossSection(-1);
+      }
+
+    case CROSSOVER:
+      robot.chassis.setDriveEffort(0, -.3);
+      if(robot.linesensors.driveSensorsOnLine()  && first== false){
+        first = true;
+        robot.chassis.setDriveEffort(0.3,0.3);
+      }
+      else if(robot.linesensors.driveSensorsOnLine()  && first== false){
+        robot.chassis.setDriveEffort(0.0,0.0);
+        robot.centerOnCrossSection(-1);
+      }
+    
+    case EDITD:
         break;
       default:
         break;

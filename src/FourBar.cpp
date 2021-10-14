@@ -120,7 +120,6 @@ float FourBar::setEffortWihtoutDB(int effort){
 }
 
 void FourBar::moveTo(int pos){
-    if (armTimer.isExpired()){//if arm timer 100ms expired update vars
       newPositionArm = getPosition();//new postion
       int readVal = getPosition();
       float error = pos-readVal;
@@ -131,8 +130,5 @@ void FourBar::moveTo(int pos){
         setEffortWihtoutDB((int) (error*kpA + errorTotal*kiA + (error - lastError) * kdA));//set effort
         lastError = error;//last error is current error
       }
-      else;//break from while loop
       oldPositionArm  = newPositionArm;//record current posision
-  } 
-    setEffort(0);//stop motor
 }
