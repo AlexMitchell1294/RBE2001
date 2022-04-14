@@ -1,0 +1,18 @@
+Drive forward
+turn left
+pickup 45
+turn 180
+drive foward 
+turn left
+drop off platform
+drive across
+turn right
+pickup plate off platform
+turn 180
+forward turn left
+place 25
+
+
+place 45
+
+pickup 25

@@ -1,0 +1,2 @@
+fourbar goes from 0 to 13000
+fourbar needs about 120 effort to get past max point with no plate
